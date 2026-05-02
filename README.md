@@ -17,7 +17,7 @@ Magisk/KernelSU Module that changes some System settings to DeGoogle your ROM
  - Configure the settings by either editing settings.conf manually in the module directory (or running action.sh WIP)
 
  ## Contributing
- - If you are missing a feature that is not listed in out-of-scope.md, feel free to open an issue or pull request!
+ - If you are missing a feature that is not [out of scope](out-of-scope.md), feel free to open an issue or pull request!
 
  ## Credits
  - NoneBaiano for VanadiumWebViewBrowser
