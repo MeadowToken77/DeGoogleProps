@@ -1,0 +1,27 @@
+# configurator for DeGoogleProps
+#! /system/bin/sh
+
+configuration_type(){
+    
+  }
+
+configure_webview(){
+
+  }
+
+configure_private_dns(){
+
+  }
+
+configure_ntp(){
+
+  }
+
+configure_captive_portal(){
+
+  }
+
+# selelction function for choices passed on as positional arguments (options in order)
+selector(){
+
+  }
