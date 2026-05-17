@@ -16,3 +16,6 @@ settings put global captive_portal_https_url $CAPTIVE_PORTTAL_HTTPS
 ## set private dns
 settings put global private_dns_mode=hostname
 settings put global private_dns_specifier=$PRIVATE_DNS
+
+## set ntp server
+settings put global ntp_server=$NTP_SERVER
