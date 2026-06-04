@@ -215,7 +215,7 @@ echo "Installing..."
 echo "**********"
 echo
 
-[ -f "$MODPATH/common/install.sh" ] && . $MODPATH/common/install.sh
+[ -f "$MODPATH/common/install.sh" ] && . $MODPATH/common/install.sh vanadium
 
 echo
 echo "=============================="
