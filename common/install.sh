@@ -21,10 +21,10 @@ alias curl='$MODPATH/bin/$ARCH/curl --dns-servers 1.1.1.1,1.0.0.1'
 
 # API Check
 if [[ $API -ge 29 ]]; then
-	echo "Your Android Version is Supported!"
+  echo "Your Android Version is Supported!"
 else
-	abort "Your Android Version is not Supported!"
-
+  abort "Your Android Version is not Supported!"
+fi
 
 # Check LineageOS
 local LOS=$(getprop | grep -o -c "lineage")
@@ -38,26 +38,51 @@ fi
 
 mkdir -p "$MODPATH/$Install_PATH"
 
+check_ping() {
+  local host_ip="${1:-1.1.1.1}"
+  local host_name="${2:-cloudflare.com}"
+  local count=1
+  local timeout=3
+
+  # Ping IP (checks routing/TCP not needed)
+  if ping -c "$count" -W "$timeout" "$host_ip" >/dev/null 2>&1; then
+    echo 'You have internet'
+    return 0
+  fi
+
+  # Fallback: ping hostname (checks DNS + ICMP)
+  if ping -c "$count" -W "$timeout" "$host_name" >/dev/null 2>&1; then
+    echo 'You have Internet'
+    return 0
+  fi
+
+  echo 'CONNECT TO THE INTERNET!!!'
+  return 1
+}
+
+if ! check_ping; then
+  echo "CONNECT TO THE INTERNET!!!"
+fi
+
 #Determine overay path
 echo "Checking for Overlay Directory..."
 if [[ $LOS -gt 0 ]]; then
-	OVERLAY_PATH=system/product/overlay/
+  OVERLAY_PATH=system/product/overlay/
 elif [[ -d /system/product/overlay ]]; then
-	OVERLAY_PATH=system/product/overlay/
+  OVERLAY_PATH=system/product/overlay/
 elif [[ -d /system_ext/overlay ]]; then
-	OVERLAY_PATH=system/system_ext/overlay/
+  OVERLAY_PATH=system/system_ext/overlay/
 elif [[ -d /system/overlay ]]; then
-	OVERLAY_PATH=system/overlay/
+  OVERLAY_PATH=system/overlay/
 elif [[ -d /system/vendor/overlay ]]; then
-	OVERLAY_PATH=system/vendor/overlay/
+  OVERLAY_PATH=system/vendor/overlay/
 else
-	abort "Unable to Find a Correct Overlay Path!"
+  abort "Unable to Find a Correct Overlay Path!"
 fi
 echo "Overlay Directory Found!"
 
 echo "Creating Overlay Directory Inside the Module..."
 mkdir -p "$MODPATH/$OVERLAY_PATH"
-
 
 #function for installing Vanadium System WebView
 install_vanadium() {
@@ -87,7 +112,7 @@ install_vanadium() {
   else
     abort "Couldn't Download WebView!"
   fi
-  
+
   #copy the overlay apk
   cp "$MODPATH/Overlay/WebViewOverlay29.apk" "$MODPATH/$OVERLAY_PATH/VanadiumWebViewOverlay.apk"
 }
@@ -96,31 +121,31 @@ install_vanadium() {
 install_aosmium() {
   local Latest32=$(curl -sS -L https://codeberg.org/AXP-OS/app_aosmium/releases/latest | grep webview32-signed.apk | grep -m 1 -o https://codeberg.org/AXP-OS/app_aosmium/releases/download/.*.apk)
   local Latest64=$(curl -sS -L https://codeberg.org/AXP-OS/app_aosmium/releases/latest | grep webview64-signed.apk | grep -m 1 -o https://codeberg.org/AXP-OS/app_aosmium/releases/download/.*.apk)
-  
+
   # Download and Install WebView
   echo "Download and Install Aosmium WebView..."
   if [[ "$ARCH" = "arm" ]]; then
-	  curl -o $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk $Latest32
-	  if [[ -f $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk ]]; then
-		  su -c cp $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk /data/local/tmp
-		  su -c pm install --install-location 1 /data/local/tmp/AosmiumWebView.apk
-		  echo "Aosmium WebView Downloaded and Installed!"
+    curl -o $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk $Latest32
+    if [[ -f $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk ]]; then
+      su -c cp $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk /data/local/tmp
+      su -c pm install --install-location 1 /data/local/tmp/AosmiumWebView.apk
+      echo "Aosmium WebView Downloaded and Installed!"
       su -c rm -f /data/local/tmp/AosmiumWebView.apk
-	  else
-		  abort "Couldn't Download File..."
-	  fi
+    else
+      abort "Couldn't Download File..."
+    fi
   elif [[ "$ARCH" = "arm64" ]]; then
-	  curl -o $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk $Latest64
-	  if [[ -f $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk ]]; then
-		  su -c cp $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk /data/local/tmp
-		  su -c pm install --install-location 1 /data/local/tmp/AosmiumWebView.apk
-		  echo "Aosmium WebView Downloaded and Installed!"
+    curl -o $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk $Latest64
+    if [[ -f $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk ]]; then
+      su -c cp $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk /data/local/tmp
+      su -c pm install --install-location 1 /data/local/tmp/AosmiumWebView.apk
+      echo "Aosmium WebView Downloaded and Installed!"
       su -c rm -f /data/local/tmp/AosmiumWebView.apk
-	  else
-		  abort "Couldn't Download File..."
-	  fi
+    else
+      abort "Couldn't Download File..."
+    fi
   fi
-  
+
   #copy the overlay apk
   cp "$MODPATH/Overlay/WebViewOverlay29.apk" "$MODPATH/$OVERLAY_PATH/AOSmiumWebViewOverlay.apk"
 }
@@ -131,20 +156,20 @@ install_cromite() {
     abort "Cromite only supports arm64 for System WebView"
   fi
   curl -sS -L https://github.com/uazo/cromite/releases/latest/download/arm64_SystemWebView.apk --output $MODPATH/$Install_PATH/webview/webview.apk
-  	  if [[ -f $MODPATH/$Install_PATH/webview/webview.apk ]]; then
-		  su -c cp $MODPATH/$Install_PATH/webview/webview.apk /data/local/tmp
-		  su -c pm install --install-location 1 /data/local/tmp/webview.apk
-		  echo "Cromite WebView downloaded and installed!"
-      su -c rm -f /data/local/tmp/webview.apk
-      echo "Cromite WebView is called Android System WebView in developer options!"
-	  else
-		  abort "Couldn't Download File..."
-    fi
+  if [[ -f $MODPATH/$Install_PATH/webview/webview.apk ]]; then
+    su -c cp $MODPATH/$Install_PATH/webview/webview.apk /data/local/tmp
+    su -c pm install --install-location 1 /data/local/tmp/webview.apk
+    echo "Cromite WebView downloaded and installed!"
+    su -c rm -f /data/local/tmp/webview.apk
+    echo "Cromite WebView is called Android System WebView in developer options!"
+  else
+    abort "Couldn't Download File..."
+  fi
 
 }
 
 #cleanup
-cleanup(){
+cleanup() {
   echo "Cleaning Up..."
   mv $MODPATH/bin/$ARCH/curl $MODPATH/bin/curl
   rm -rf $MODPATH/bin/$ARCH
@@ -164,10 +189,11 @@ check_args() {
   cromite)
     install_cromite
     ;;
-  all) ;;
+  all)
     install_aosmium
     install_vanadium
     install_cromite
+    ;;
   *)
     echo "No WebView passed!"
     exit 1
