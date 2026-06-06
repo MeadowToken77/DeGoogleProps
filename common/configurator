@@ -30,9 +30,10 @@ configure_webview(){
     while true; do
       selector Vanadium Aosmium Cromite
       #TODO:: add array logic
+      CURRENT_SELECTION=""
       echo "install additional webiew?"
       echo "Vol + = Yes, Vol - = No"
-      if chooseport; then
+      if ! chooseport; then
         return
       fi
     done
@@ -56,6 +57,7 @@ configure_private_dns(){
     ;;
     custom)
       #TODO:create action for entering text
+      echo "for custom entries, edit the line PRIVATE_DNS in /data/adb/moduels/DeGoogleProps/settings.conf..."
     ;;
     esac
   }
@@ -67,6 +69,8 @@ configure_ntp(){
       CURRENT_SELECTION="" 
       return 0
     fi
+    echo "custom entries are not yet supported in configurator :("
+    echo "for custom entries, edit the lines CAPTIVE_PORTAL_HTTP_URL and CAPTIVE_PORTAL_HTTPS_URL in /data/adb/moduels/DeGoogleProps/settings.conf..."
   }
 configure_captive_portal(){
     selector GrapheneOS /e/OS Kuketz custom off
@@ -90,6 +94,8 @@ configure_captive_portal(){
       CURRENT_SELECTION=""
     ;;
     custom)
+      echo "custom entries are not yet supported in configurator :("
+      echo "for custom entries, edit the lines CAPTIVE_PORTAL_HTTP_URL and CAPTIVE_PORTAL_HTTPS_URL in /data/adb/moduels/DeGoogleProps/settings.conf..."
     ;;
     off)
       sed -i.bak 's/^CAPTIVE_PORTAL_ENABLED=.*/CAPTIVE_PORTAL_ENABLED=1/' $config
@@ -98,74 +104,58 @@ configure_captive_portal(){
     esac
   }
 
-# selelction function for choices passed on as positional arguments (options in order)
-selector(){
-  local i
-  local -a options=("$@")
-  local idx=0
-    while true; do 
-      if chooseport; then 
-        local result
-        result=$(( ($i % $#) = 1 ))
-        CURRENT_SELECTION = ${options[$i]}
-        show_cursor
-        reset
-        clear_screen
-        echo "Selected: ${options[idx]}"
-      fi
-      i++
-      idx=$(((idx + 1) % ${#options[@]}))
-      draw
-    done
-  }
-
-
-# chooseport funtion using volume keys 
-chooseport() {
-  # Original idea by chainfire and ianmacd @xda-developers
-  [ "$1" ] && local delay=$1 || local delay=1
-  local error=false 
-  while true; do
-    local count=0
-    while true; do
-      timeout $delay /system/bin/getevent -lqc 1 2>&1 > $TMPDIR/events &
-      sleep 0.5; count=$((count + 1))
-      if (`grep -q 'KEY_VOLUMEUP *DOWN' $TMPDIR/events`); then
-        return 0
-      elif (`grep -q 'KEY_VOLUMEDOWN *DOWN' $TMPDIR/events`); then
-        return 1
-      fi
-      [ $count -gt 30 ] && break
-    done
-    if $error; then
-       abort "Volume key not detected!"
-    else
-      error=true
-      echo "Volume key not detected. Try again"
-    fi
-  done
-}
-
 #TUI controls for select options
 clear_screen() { printf "\033[2J\033[H"; }
 hide_cursor() { printf "\033[?25l"; }
 show_cursor() { printf "\033[?25h"; }
-bold() { printf "\033[1m"; }
 reset() { printf "\033[0m"; }
 
-draw() {
-  clear_screen
-  echo "Use 'a' to move, 'b' to select."
-  echo
-  for i in "${!options[@]}"; do
-    if [ "$i" -eq "$idx" ]; then
-      invert
-      bold
-      printf "  ➜ %s\n" "${options[i]}"
-      reset
+# selelction function for choices passed on as positional arguments (options in order)
+selector() {
+  local opts=("$@")
+  local n=${#opts[@]}
+  local idx=0
+  CURRENT_SELECTION=""
+  hide_cursor
+  while true; do
+    # draw menu
+    clear_screen
+    echo "Use Volume Up to select, Volume Down to cancel."
+    echo
+    for i in "${!opts[@]}"; do
+      if [ "$i" -eq "$idx" ]; then
+        printf "  \033[1m➜ %s\033[0m\n" "${opts[i]}"
+      else
+        printf "    %s\n" "${opts[i]}"
+      fi
+    done
+
+    # wait for volume key
+    if chooseport 1; then
+      # Volume Up: select current item
+      CURRENT_SELECTION="${opts[idx]}"
+      show_cursor
+      return 0
     else
-      printf "    %s\n" "${options[i]}"
+      # Volume Down: move to next option (cycle)
+      idx=$(( (idx + 1) % n ))
     fi
+  done
+}
+
+# chooseport funtion using volume keys 
+chooseport() {
+  local delay=${1:-1}
+  local tmp=$TMPDIR/events
+  while true; do
+    timeout "$delay" /system/bin/getevent -lqc 1 2>&1 > "$tmp" &
+    sleep 0.1
+    if grep -q 'KEY_VOLUMEUP *DOWN' "$tmp"; then
+      return 0
+    elif grep -q 'KEY_VOLUMEDOWN *DOWN' "$tmp"; then
+      return 1
+    fi
+    # keep looping until key pressed
   done
 }
 
@@ -182,7 +172,7 @@ update(){
       fi
     fi
     echo "Applying values..."
-    su -c sh $MODDIR/service.sh
+    . $MODDIR/service.sh
   }
 
 #======================================
