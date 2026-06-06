@@ -23,6 +23,7 @@ configuration_type(){
       update
       exit 0
     ;;
+    esac
   }
 
 configure_webview(){
@@ -56,6 +57,7 @@ configure_private_dns(){
     custom)
       #TODO:create action for entering text
     ;;
+    esac
   }
 
 configure_ntp(){
@@ -93,13 +95,14 @@ configure_captive_portal(){
       sed -i.bak 's/^CAPTIVE_PORTAL_ENABLED=.*/CAPTIVE_PORTAL_ENABLED=1/' $config
       CURRENT_SELECTION=""
     ;;
+    esac
   }
 
 # selelction function for choices passed on as positional arguments (options in order)
 selector(){
   local i
   local -a options=("$@")
-  local idx =0
+  local idx=0
     while true; do 
       if chooseport; then 
         local result

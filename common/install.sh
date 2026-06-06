@@ -4,7 +4,7 @@
 #===========================================================================================================
 
 # Extract curl depending on Architecture if not already done in an earlier run
-if [[ -f "$MODPATH/bin/curl" ]]; then
+if [[ ! -f "$MODPATH/bin/curl" ]]; then
   if [[ "$ARCH" = "arm" ]]; then
     unzip -j "$MODPATH/bin/curl.zip" -d "$MODPATH/bin"
   elif [[ "$ARCH" = "arm64" ]]; then
@@ -13,11 +13,11 @@ if [[ -f "$MODPATH/bin/curl" ]]; then
     echo "Unsupported CPU Architecture"
     exit
   fi
-  chmod 0755 $MODPATH/bin/$ARCH/curl
+  chmod 0755 $MODPATH/bin/curl
 fi
 
 # Alias for Curl
-alias curl='$MODPATH/bin/$ARCH/curl --dns-servers 1.1.1.1,1.0.0.1'
+alias curl='$MODPATH/bin/curl --dns-servers 1.1.1.1,1.0.0.1'
 
 # API Check
 if [[ $API -ge 29 ]]; then
@@ -30,10 +30,10 @@ fi
 local LOS=$(getprop | grep -o -c "lineage")
 
 if [[ $LOS -gt 0 ]]; then
-  Install_PATH=/system/product/app
+  Install_PATH=system/product/app
   echo "LineageOS based Custom ROM detected!"
 else
-  Install_PATH=/system/app
+  Install_PATH=system/app
 fi
 
 mkdir -p "$MODPATH/$Install_PATH"
@@ -84,6 +84,8 @@ echo "Overlay Directory Found!"
 echo "Creating Overlay Directory Inside the Module..."
 mkdir -p "$MODPATH/$OVERLAY_PATH"
 
+echo Your webview install path is $MODPATH/$Install_PATH/
+
 #function for installing Vanadium System WebView
 install_vanadium() {
 
@@ -92,7 +94,8 @@ install_vanadium() {
 
   #download and installation
   echo "Downloading and Installing Vanadium TrichromeLibrary..."
-  curl -o "$MODPATH/$Install_PATH/VanadiumTrichromeLibrary/VanadiumTrichromeLibrary.apk" "$TRI_URL"
+  mkdir -p $MODPATH/$Install_PATH/VanadiumTrichromeLibrary
+  curl -v -o "$MODPATH/$Install_PATH/VanadiumTrichromeLibrary/VanadiumTrichromeLibrary.apk" "$TRI_URL"
   if [[ -f "$MODPATH/$Install_PATH/VanadiumTrichromeLibrary/VanadiumTrichromeLibrary.apk" ]]; then
     su -c cp "$MODPATH/$Install_PATH/VanadiumTrichromeLibrary/VanadiumTrichromeLibrary.apk" /data/local/tmp
     su -c pm install --install-location 1 /data/local/tmp/VanadiumTrichromeLibrary.apk
@@ -103,6 +106,7 @@ install_vanadium() {
   fi
 
   echo "Downloading and Installing Vanadium WebView..."
+  mkdir -p $MODPATH/$Install_PATH/VanadiumWebView
   curl -o "$MODPATH/$Install_PATH/VanadiumWebView/VanadiumWebView.apk" "$WEB_URL"
   if [[ -f "$MODPATH/$Install_PATH/VanadiumWebView/VanadiumWebView.apk" ]]; then
     su -c cp "$MODPATH/$Install_PATH/VanadiumWebView/VanadiumWebView.apk" /data/local/tmp
@@ -114,7 +118,7 @@ install_vanadium() {
   fi
 
   #copy the overlay apk
-  cp "$MODPATH/Overlay/WebViewOverlay29.apk" "$MODPATH/$OVERLAY_PATH/VanadiumWebViewOverlay.apk"
+  cp "$MODPATH/Overlay/VanadiumWebViewOverlay.apk" "$MODPATH/$OVERLAY_PATH/VanadiumWebViewOverlay.apk"
 }
 
 #function for installing AOSmium System WebView
@@ -124,6 +128,7 @@ install_aosmium() {
 
   # Download and Install WebView
   echo "Download and Install Aosmium WebView..."
+  mkdir -p $MODPATH/Install_PATH/AosmiumWebView
   if [[ "$ARCH" = "arm" ]]; then
     curl -o $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk $Latest32
     if [[ -f $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk ]]; then
@@ -147,7 +152,7 @@ install_aosmium() {
   fi
 
   #copy the overlay apk
-  cp "$MODPATH/Overlay/WebViewOverlay29.apk" "$MODPATH/$OVERLAY_PATH/AOSmiumWebViewOverlay.apk"
+  cp "$MODPATH/Overlay/AOSmiumWebViewOverlay.apk" "$MODPATH/$OVERLAY_PATH/AOSmiumWebViewOverlay.apk"
 }
 
 #function for installing Cromite System WebView
@@ -155,6 +160,7 @@ install_cromite() {
   if [[ "$ARCH" = "arm" ]]; then
     abort "Cromite only supports arm64 for System WebView"
   fi
+  mkdir -p $MODPATH/Install_PATH/webview
   curl -sS -L https://github.com/uazo/cromite/releases/latest/download/arm64_SystemWebView.apk --output $MODPATH/$Install_PATH/webview/webview.apk
   if [[ -f $MODPATH/$Install_PATH/webview/webview.apk ]]; then
     su -c cp $MODPATH/$Install_PATH/webview/webview.apk /data/local/tmp
