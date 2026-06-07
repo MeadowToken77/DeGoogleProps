@@ -31,17 +31,27 @@ configure_webview(){
     local -a WVS
     while true; do
       selector Vanadium Aosmium Cromite
-      #TODO:: add array logic
-      #create a new array add the options to that array and write that out at the end of the function
       case $CURRENT_SELECTION in
         "Vanadium")
-          
+          if contains "Vanadium" "${WVS[@]}"; then
+            echo "Don't add the same webview twice"
+          else
+            WVS+="vanadum"
+          fi
         ;;
         "Aosmium")
-          
+          if contains "Aosmium" "${WVS[@]}"; then
+            echo "Don't add the same webview twice"
+          else
+            WVS+="aosmium"
+          fi
         ;;
         "Cromite")
-          
+          if contains "Cromite" "${WVS[@]}"; then
+            echo "Don't add the same webview twice"
+          else
+            WVS+="cromite"
+          fi
         ;;
       esac
       CURRENT_SELECTION=""
@@ -52,8 +62,24 @@ configure_webview(){
       fi
     done
     WEBVIEW_UPDATE=true
-    sed -i.bak 's|^WEBVIEW=.*|WEBVIEW=$WVS|' $config
+    local item quoted_items=""
+    for item in "${WVS[@]}"; do
+      quoted_items="$quoted_items $(printf '%q' "$item")"
+    done
+    # trim leading space
+    quoted_items="${quoted_items# }"
+    sed -i.bak "s|^WEBVIEW=.*|WEBVIEW=($quoted_items)|" "$config"
   }
+
+contains() {
+  target="$1"; shift
+  for item in "$@"; do
+    if [ "$item" = "$target" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
 
 configure_private_dns(){
     selector Mullvad Quad9 Cloudflare custom
