@@ -14,6 +14,9 @@ if [[ ! -f "$MODPATH/bin/curl" ]]; then
     exit
   fi
   chmod 0755 $MODPATH/bin/curl
+  mv $MODPATH/bin/$ARCH/curl $MODPATH/bin/curl
+  rm -rf $MODPATH/bin/$ARCH
+  rm -rf $MODPATH/bin/*.zip
 fi
 
 # Alias for Curl
@@ -128,7 +131,7 @@ install_aosmium() {
 
   # Download and Install WebView
   echo "Download and Install Aosmium WebView..."
-  mkdir -p $MODPATH/Install_PATH/AosmiumWebView
+  mkdir -p $MODPATH/$Install_PATH/AosmiumWebView
   if [[ "$ARCH" = "arm" ]]; then
     curl -o $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk $Latest32
     if [[ -f $MODPATH/$Install_PATH/AosmiumWebView/AosmiumWebView.apk ]]; then
@@ -177,9 +180,6 @@ install_cromite() {
 #cleanup
 cleanup() {
   echo "Cleaning Up..."
-  mv $MODPATH/bin/$ARCH/curl $MODPATH/bin/curl
-  rm -rf $MODPATH/bin/$ARCH
-  rm -rf $MODPATH/bin/*.zip
   rm -rf $MODPATH/system/.placeholder
 }
 

@@ -36,7 +36,7 @@ configure_webview(){
           if contains "Vanadium" "${WVS[@]}"; then
             echo "Don't add the same webview twice"
           else
-            WVS+="vanadum"
+            WVS+="vanadium"
           fi
         ;;
         "Aosmium")
@@ -58,17 +58,17 @@ configure_webview(){
       echo "install additional webiew?"
       echo "Vol + = Yes, Vol - = No"
       if ! chooseport; then
+        WEBVIEW_UPDATE=true
+        local item quoted_items=""
+        for item in "${WVS[@]}"; do
+          quoted_items="$quoted_items $(printf '%q' "$item")"
+        done
+        # trim leading space
+        quoted_items="${quoted_items# }"
+        sed -i.bak "s|^WEBVIEW=.*|WEBVIEW=($quoted_items)|" "$config"
         return
       fi
     done
-    WEBVIEW_UPDATE=true
-    local item quoted_items=""
-    for item in "${WVS[@]}"; do
-      quoted_items="$quoted_items $(printf '%q' "$item")"
-    done
-    # trim leading space
-    quoted_items="${quoted_items# }"
-    sed -i.bak "s|^WEBVIEW=.*|WEBVIEW=($quoted_items)|" "$config"
   }
 
 contains() {
@@ -207,6 +207,12 @@ update(){
     if [ "$WEBVIEW_UPDATE" = true ]; then
       echo "Installing or Updating Webview(s)..."
       source $config
+      export MODPATH=/data/adb/modules/DeGoogleProps
+      arch=$(getprop ro.product.cpu.abi)
+      if [[ arch == "arm64*"]]; then
+        arch="arm64"
+      fi
+      export ARCH=$arch
       if [[ "${#WEBVIEW[@]}" == 3 ]]; then
         [ -f "common/install.sh" ] && . "common/install.sh" "all"
       else
