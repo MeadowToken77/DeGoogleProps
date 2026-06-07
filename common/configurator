@@ -7,7 +7,7 @@ WEBVIEW_UPDATE=false
 configuration_type(){
     selector 'configure webview' 'configure private dns' 'configure ntp' 'configure captive portal' update
     case $CURRENT_SELECTION in
-    'configure webiew')
+    'configure webview')
       configure_webview
     ;;
     'configure private dns')
@@ -20,6 +20,7 @@ configuration_type(){
       configure_captive_portal
     ;;
     update)
+      WEBVIEW_UPDATE=true
       update
       exit 0
     ;;
@@ -27,9 +28,22 @@ configuration_type(){
   }
 
 configure_webview(){
+    local -a WVS
     while true; do
       selector Vanadium Aosmium Cromite
       #TODO:: add array logic
+      #create a new array add the options to that array and write that out at the end of the function
+      case $CURRENT_SELECTION in
+        "Vanadium")
+          
+        ;;
+        "Aosmium")
+          
+        ;;
+        "Cromite")
+          
+        ;;
+      esac
       CURRENT_SELECTION=""
       echo "install additional webiew?"
       echo "Vol + = Yes, Vol - = No"
@@ -38,67 +52,71 @@ configure_webview(){
       fi
     done
     WEBVIEW_UPDATE=true
+    sed -i.bak 's|^WEBVIEW=.*|WEBVIEW=$WVS|' $config
   }
 
 configure_private_dns(){
     selector Mullvad Quad9 Cloudflare custom
     case $CURRENT_SELECTION in
-    Mullvad)
+    "Mullvad")
       sed -i.bak 's/^PRIVATE_DNS=.*/PRIVATE_DNS=adblock.dns.mullvad.net/' $config
       CURRENT_SELECTION=""
     ;;
-    Quad9)
+    "Quad9")
       sed -i.bak 's/^PRIVATE_DNS=.*/PRIVATE_DNS=dns.quad9.net/' $config
       CURRENT_SELECTION=""
     ;;
-    Cloudflare)
+    "Cloudflare")
       sed -i.bak 's/^PRIVATE_DNS=.*/PRIVATE_DNS=one.one.one.one/' $config
       CURRENT_SELECTION=""
     ;;
-    custom)
+    "custom")
       #TODO:create action for entering text
-      echo "for custom entries, edit the line PRIVATE_DNS in /data/adb/moduels/DeGoogleProps/settings.conf..."
+      echo "for custom entries, edit the line PRIVATE_DNS in $config ..."
+      sleep 3
     ;;
     esac
   }
 
 configure_ntp(){
     selector pool.ntp.org custom
-    if [[CURRENT_SELECTION == pool.ntp.org]]; then
-      sed -i.bak 's/^NTP_SERVER=.*/NTP_SERVER=pool.ntp.org/' $config 
+    if [[ "$CURRENT_SELECTION" == "pool.ntp.org" ]]; then
+      sed -i.bak 's|^NTP_SERVER=.*|NTP_SERVER=pool.ntp.org|' $config 
       CURRENT_SELECTION="" 
       return 0
     fi
     echo "custom entries are not yet supported in configurator :("
-    echo "for custom entries, edit the lines CAPTIVE_PORTAL_HTTP_URL and CAPTIVE_PORTAL_HTTPS_URL in /data/adb/moduels/DeGoogleProps/settings.conf..."
+    echo "for custom entries, edit the lines CAPTIVE_PORTAL_HTTP_URL and CAPTIVE_PORTAL_HTTPS_URL in $config ..."
+    sleep 3
   }
 configure_captive_portal(){
     selector GrapheneOS /e/OS Kuketz custom off
-    case CURRENT_SELECTION in
-    GrapheneOS)
-      sed -i.bak 's/^CAPTIVE_PORTAL_ENABLED=.*/CAPTIVE_PORTAL_ENABLED=1/' $config
-      sed -i.bak 's/^CAPTIVE_PORTAL_HTTP_URL=.*/CAPTIVE_PORTAL_HTTP_URL=http://connectivitycheck.grapheneos.network/' $config
-      sed -i.bak 's/^CAPTIVE_PORTAL_HTTPS_URL=.*/CAPTIVE_PORTAL_HTTPS_URL=https://connectivitycheck.grapheneos.network/' $config
+    case $CURRENT_SELECTION in
+    "GrapheneOS")
+      sed -i.bak 's|^CAPTIVE_PORTAL_ENABLED=.*|CAPTIVE_PORTAL_ENABLED=1|' $config
+      sed -i.bak 's|^CAPTIVE_PORTAL_HTTP=.*|CAPTIVE_PORTAL_HTTP=http://connectivitycheck.grapheneos.network|' $config
+      sed -i.bak 's|^CAPTIVE_PORTAL_HTTPS=.*|CAPTIVE_PORTAL_HTTPS=https://connectivitycheck.grapheneos.network|' $config
       CURRENT_SELECTION=""
     ;;
-    /e/OS)
-      sed -i.bak 's/^CAPTIVE_PORTAL_ENABLED=.*/CAPTIVE_PORTAL_ENABLED=1/' $config
-      sed -i.bak 's/^CAPTIVE_PORTAL_HTTP_URL=.*/CAPTIVE_PORTAL_HTTP_URL=http://204.ecloud.global/' $config
-      sed -i.bak 's/^CAPTIVE_PORTAL_HTTPS_URL=.*/CAPTIVE_PORTAL_HTTPS_URL=https://e.foundation/net_204/' $config
+    "/e/OS")
+      sed -i.bak 's|^CAPTIVE_PORTAL_ENABLED=.*|CAPTIVE_PORTAL_ENABLED=1|' $config
+      sed -i.bak 's|^CAPTIVE_PORTAL_HTTP=.*|CAPTIVE_PORTAL_HTTP=http://204.ecloud.global|' $config
+      sed -i.bak 's|^CAPTIVE_PORTAL_HTTPS=.*|CAPTIVE_PORTAL_HTTPS=https://e.foundation/net_204|' $config
       CURRENT_SELECTION=""
     ;;
-    Kuketz)
-      sed -i.bak 's/^CAPTIVE_PORTAL_ENABLED=.*/CAPTIVE_PORTAL_ENABLED=1/' $config
-      sed -i.bak 's/^CAPTIVE_PORTAL_HTTP_URL=.*/CAPTIVE_PORTAL_HTTP_URL=http://captiveportal.kuketz.de/' $config
-      sed -i.bak 's/^CAPTIVE_PORTAL_HTTPS_URL=.*/CAPTIVE_PORTAL_HTTPS_URL=https://captiveportal.kuketz.de/' $config
+    "Kuketz")
+      sed -i.bak 's|^CAPTIVE_PORTAL_ENABLED=.*|CAPTIVE_PORTAL_ENABLED=1|' $config
+      sed -i.bak 's|^CAPTIVE_PORTAL_HTTP=.*|CAPTIVE_PORTAL_HTTP=http://captiveportal.kuketz.de|' $config
+      sed -i.bak 's|^CAPTIVE_PORTAL_HTTPS=.*|CAPTIVE_PORTAL_HTTPS=https://captiveportal.kuketz.de|' $config
       CURRENT_SELECTION=""
     ;;
-    custom)
+    "custom")
       echo "custom entries are not yet supported in configurator :("
-      echo "for custom entries, edit the lines CAPTIVE_PORTAL_HTTP_URL and CAPTIVE_PORTAL_HTTPS_URL in /data/adb/moduels/DeGoogleProps/settings.conf..."
+      echo "for custom entries, edit the lines CAPTIVE_PORTAL_HTTP and CAPTIVE_PORTAL_HTTPS in $config ..."
+      sleep 3
     ;;
-    off)
-      sed -i.bak 's/^CAPTIVE_PORTAL_ENABLED=.*/CAPTIVE_PORTAL_ENABLED=1/' $config
+    "off")
+      sed -i.bak 's|^CAPTIVE_PORTAL_ENABLED=.*|CAPTIVE_PORTAL_ENABLED=0|' $config
       CURRENT_SELECTION=""
     ;;
     esac
@@ -160,19 +178,19 @@ chooseport() {
 }
 
 update(){
-    if WEBVIEW_UPDATE; then
+    if [ "$WEBVIEW_UPDATE" = true ]; then
       echo "Installing or Updating Webview(s)..."
-      source settings.conf
+      source $config
       if [[ "${#WEBVIEW[@]}" == 3 ]]; then
-        [ -f "$MODDIR/common/install.sh" ] && . "$MODDIR/common/install.sh" "all"
+        [ -f "common/install.sh" ] && . "common/install.sh" "all"
       else
         for i in "${arr[WEBVIEW]}"; do
-          [ -f "$MODDIR/common/install.sh" ] && . "$MODDIR/common/install.sh" "$i"
+          [ -f "common/install.sh" ] && . "common/install.sh" "$i"
         done
       fi
     fi
     echo "Applying values..."
-    . $MODDIR/service.sh
+    . service.sh
   }
 
 #======================================
