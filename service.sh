@@ -8,7 +8,7 @@ chmod 0755 bin/curl
 source settings.conf
 
 ## set captive portal
-su -c settings put global captive_portal_enabled $CAPTIVE_PORTAL_ENABLED
+su -c settings put global cpative_portal_mode $CAPTIVE_PORTAL_ENABLED
 su -c settings put global captive_portal_http_url $CAPTIVE_PORTAL_HTTP
 su -c settings put global captive_portal_https_url $CAPTIVE_PORTAL_HTTPS
 
