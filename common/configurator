@@ -28,29 +28,29 @@ configuration_type(){
   }
 
 configure_webview(){
-    local -a WVS
+    WVS=""
     while true; do
       selector Vanadium Aosmium Cromite
-      case $CURRENT_SELECTION in
+      case "$CURRENT_SELECTION" in
         "Vanadium")
-          if contains "Vanadium" "${WVS[@]}"; then
+          if contains "vanadium" $WVS; then
             echo "Don't add the same webview twice"
           else
-            WVS+="vanadium"
+            WVS="$WVS vanadium"
           fi
         ;;
         "Aosmium")
-          if contains "Aosmium" "${WVS[@]}"; then
+          if contains "aosmium" $WVS; then
             echo "Don't add the same webview twice"
           else
-            WVS+="aosmium"
+            WVS="$WVS aosmium"
           fi
         ;;
         "Cromite")
-          if contains "Cromite" "${WVS[@]}"; then
+          if contains "cromite" $WVS; then
             echo "Don't add the same webview twice"
           else
-            WVS+="cromite"
+            WVS="$WVS cromite"
           fi
         ;;
       esac
@@ -59,13 +59,9 @@ configure_webview(){
       echo "Vol + = Yes, Vol - = No"
       if ! chooseport; then
         WEBVIEW_UPDATE=true
-        local item quoted_items=""
-        for item in "${WVS[@]}"; do
-          quoted_items="$quoted_items $(printf '%q' "$item")"
-        done
-        # trim leading space
-        quoted_items="${quoted_items# }"
-        sed -i.bak "s|^WEBVIEW=.*|WEBVIEW=($quoted_items)|" "$config"
+        WVS=$(printf "%s" "$WVS" | sed 's/^ *//; s/  */ /g')
+        # Write a plain space-separated string to config as WEBVIEW="item1 item2"
+        sed -i.bak "s|^WEBVIEW=.*|WEBVIEW=\"$WVS\"|" "$config"
         return
       fi
     done
@@ -156,37 +152,41 @@ reset() { printf "\033[0m"; }
 
 # selelction function for choices passed on as positional arguments (options in order)
 selector() {
-  local opts=("$@")
-  local n=${#opts[@]}
-  local idx=0
+  set -- "$@"
+  n=$#
+  idx=0
   CURRENT_SELECTION=""
   hide_cursor
   while true; do
-    # draw menu
     clear_screen
-    echo "Use Volume Up to select, Volume Down to cancel."
+    echo "Use Volume Up to select, Volume Down to move."
     echo
-    for i in "${!opts[@]}"; do
+    i=0
+    for item in "$@"; do
       if [ "$i" -eq "$idx" ]; then
-        printf "  \033[1m➜ %s\033[0m\n" "${opts[i]}"
+        printf "  \033[1m➜ %s\033[0m\n" "$item"
       else
-        printf "    %s\n" "${opts[i]}"
+        printf "    %s\n" "$item"
       fi
+      i=$((i + 1))
     done
 
-    # wait for volume key
     if chooseport 1; then
-      # Volume Up: select current item
-      CURRENT_SELECTION="${opts[idx]}"
+      sel_idx=0
+      for item in "$@"; do
+        if [ "$sel_idx" -eq "$idx" ]; then
+          CURRENT_SELECTION="$item"
+          break
+        fi
+        sel_idx=$((sel_idx + 1))
+      done
       show_cursor
       return 0
     else
-      # Volume Down: move to next option (cycle)
       idx=$(( (idx + 1) % n ))
     fi
   done
 }
-
 # chooseport funtion using volume keys 
 chooseport() {
   local delay=${1:-1}
@@ -207,22 +207,19 @@ update(){
     if [ "$WEBVIEW_UPDATE" = true ]; then
       echo "Installing or Updating Webview(s)..."
       source $config
+      alias abort="exit 1 && sleep 3"
       export MODPATH=/data/adb/modules/DeGoogleProps
       arch=$(getprop ro.product.cpu.abi)
       if [[ arch == "arm64*"]]; then
         arch="arm64"
       fi
       export ARCH=$arch
-      if [[ "${#WEBVIEW[@]}" == 3 ]]; then
-        [ -f "common/install.sh" ] && . "common/install.sh" "all"
-      else
-        for i in "${arr[WEBVIEW]}"; do
-          [ -f "common/install.sh" ] && . "common/install.sh" "$i"
-        done
-      fi
+      echo "Selected Webviews to be installed: $WEBVIEW "
+      [ -f "common/install.sh" ] && . "common/install.sh" $WEBVIEW
     fi
     echo "Applying values..."
     . service.sh
+    sleep 2
   }
 
 #======================================
