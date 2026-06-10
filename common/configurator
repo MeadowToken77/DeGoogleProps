@@ -157,15 +157,15 @@ selector() {
   n=$#
   idx=0
   CURRENT_SELECTION=""
-  hide_cursor
+  # hide_cursor
   while true; do
-    clear_screen
+    # clear_screen
     echo "Use Volume Up to select, Volume Down to move."
     echo
     i=0
     for item in "$@"; do
       if [ "$i" -eq "$idx" ]; then
-        printf '  \033[1m➜ %s\033[0m\n' "$item"
+        printf '  \033➜ %s\033\n' "$item"
       else
         printf '    %s\n' "$item"
       fi
@@ -181,7 +181,7 @@ selector() {
         fi
         sel_idx=$((sel_idx + 1))
       done
-      show_cursor
+      # show_cursor
       return 0
     else
       idx=$(( (idx + 1) % n ))
