@@ -1,6 +1,7 @@
 # configurator for DeGoogleProps
 #! /system/bin/sh
-config=/data/adb/modules/DeGoogleProps/settings.conf
+MODDIR=${0%/*}
+config=$MODDIR/settings.conf
 CURRENT_SELECTION=""
 WEBVIEW_UPDATE=false
 
@@ -55,7 +56,7 @@ configure_webview(){
         ;;
       esac
       CURRENT_SELECTION=""
-      echo "install additional webiew?"
+      echo "install additional webview?"
       echo "Vol + = Yes, Vol - = No"
       if ! chooseport; then
         WEBVIEW_UPDATE=true
@@ -102,7 +103,7 @@ configure_private_dns(){
 
 configure_ntp(){
     selector pool.ntp.org custom
-    if [[ "$CURRENT_SELECTION" == "pool.ntp.org" ]]; then
+    if [ "$CURRENT_SELECTION" == "pool.ntp.org" ]; then
       sed -i.bak 's|^NTP_SERVER=.*|NTP_SERVER=pool.ntp.org|' $config 
       CURRENT_SELECTION="" 
       return 0
@@ -116,8 +117,8 @@ configure_captive_portal(){
     case $CURRENT_SELECTION in
     "GrapheneOS")
       sed -i.bak 's|^CAPTIVE_PORTAL_ENABLED=.*|CAPTIVE_PORTAL_ENABLED=1|' $config
-      sed -i.bak 's|^CAPTIVE_PORTAL_HTTP=.*|CAPTIVE_PORTAL_HTTP=http://connectivitycheck.grapheneos.network|' $config
-      sed -i.bak 's|^CAPTIVE_PORTAL_HTTPS=.*|CAPTIVE_PORTAL_HTTPS=https://connectivitycheck.grapheneos.network|' $config
+      sed -i.bak 's|^CAPTIVE_PORTAL_HTTP=.*|CAPTIVE_PORTAL_HTTP=http://connectivitycheck.grapheneos.network/generate_204|' $config
+      sed -i.bak 's|^CAPTIVE_PORTAL_HTTPS=.*|CAPTIVE_PORTAL_HTTPS=https://connectivitycheck.grapheneos.network/generate_204|' $config
       CURRENT_SELECTION=""
     ;;
     "/e/OS")
@@ -164,9 +165,9 @@ selector() {
     i=0
     for item in "$@"; do
       if [ "$i" -eq "$idx" ]; then
-        printf "  \033[1m➜ %s\033[0m\n" "$item"
+        printf '  \033[1m➜ %s\033[0m\n' "$item"
       else
-        printf "    %s\n" "$item"
+        printf '    %s\n" "$item'
       fi
       i=$((i + 1))
     done
@@ -206,19 +207,17 @@ chooseport() {
 update(){
     if [ "$WEBVIEW_UPDATE" = true ]; then
       echo "Installing or Updating Webview(s)..."
-      source $config
+      . $config
       alias abort="exit 1 && sleep 3"
-      export MODPATH=/data/adb/modules/DeGoogleProps
+      export MODPATH=$MODDIR
       arch=$(getprop ro.product.cpu.abi)
-      if [[ arch == "arm64*"]]; then
-        arch="arm64"
-      fi
+      case "$arch" in arm64*) arch="arm64" ;; esac
       export ARCH=$arch
       echo "Selected Webviews to be installed: $WEBVIEW "
-      [ -f "common/install.sh" ] && . "common/install.sh" $WEBVIEW
+      [ -f "common/install.sh" ] && sh "common/install.sh" $WEBVIEW
     fi
     echo "Applying values..."
-    . service.sh
+    sh service.sh
     sleep 2
   }
 
