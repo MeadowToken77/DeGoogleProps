@@ -163,6 +163,7 @@ install_cromite() {
   if [[ "$ARCH" = "arm" ]]; then
     abort "Cromite only supports arm64 for System WebView"
   fi
+  echo "Downloading and installing Cromite System WebView..."
   mkdir -p $MODPATH/Install_PATH/webview
   curl -sS -L https://github.com/uazo/cromite/releases/latest/download/arm64_SystemWebView.apk --output $MODPATH/$Install_PATH/webview/webview.apk
   if [[ -f $MODPATH/$Install_PATH/webview/webview.apk ]]; then

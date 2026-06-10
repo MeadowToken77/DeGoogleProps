@@ -215,10 +215,10 @@ update(){
       case "$arch" in arm64*) arch="arm64" ;; esac
       ARCH=$arch
       echo "Selected Webviews to be installed: $WEBVIEW "
-      [ -f "common/install.sh" ] && sh "common/install.sh" $WEBVIEW
+      [ -f "common/install.sh" ] && . "common/install.sh" $WEBVIEW
     fi
     echo "Applying values..."
-    sh service.sh
+    su -c sh service.sh
     sleep 2
   }
 
